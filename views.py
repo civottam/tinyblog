@@ -1,8 +1,11 @@
 from flask import render_template
 from sqlalchemy import func
+from uuid import uuid4
+import datetime
 
 from main import app
 from models import db, User, Post, Tag, Comment, posts_tags
+from forms import CommentForm
 
 
 def sidebar_data():
@@ -20,13 +23,21 @@ def home(page=1):
     return render_template('home.html', posts=posts, recent=recent, top_tags=top_tags)
 
 
-@app.route('/post/<string:post_id>')
+@app.route('/post/<string:post_id>', methods=('GET', 'POST'))
 def post(post_id):
+    form = CommentForm()
+    if form.validate_on_submit():
+        new_comment = Comment(id=str(uuid4()), name=form.name.data)
+        new_comment.text = form.text.data
+        new_comment.date = datetime.datetime.now()
+        new_comment.post_id = post_id
+        db.session.add(new_comment)
+        db.session.commit()
     post = Post.query.get_or_404(post_id)
     tags = post.tags
     comments = post.comments.order_by(Comment.date.desc()).all()
     recent, top_tags = sidebar_data()
-    return render_template('post.html', post=post, tags=tags, comments=comments, recent=recent, top_tags=top_tags)
+    return render_template('post.html', post=post, tags=tags, comments=comments, form=form, recent=recent, top_tags=top_tags)
 
 
 @app.route('/tag/<string:tag_name>')

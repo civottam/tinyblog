@@ -71,7 +71,8 @@ class Comment(db.Model):
     # Set foreign key of Comment
     post_id = db.Column(db.String(45), db.ForeignKey('posts.id'))
 
-    def __init__(self, name):
+    def __init__(self, id, name):
+        self.id = id
         self.name = name
     
     def __repr__(self):
