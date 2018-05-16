@@ -4,12 +4,11 @@ from uuid import uuid4
 from os import path
 import datetime
 
-from main import app
-from models import db, User, Post, Tag, Comment, posts_tags
-from forms import CommentForm
+from tinyblog.models import db, User, Post, Tag, Comment, posts_tags
+from tinyblog.forms import CommentForm
 
 
-blog_blueprint = Blueprint('blog', __name__, template_folder=path.join('/templates/blog'), url_prefix='/blog')
+blog_blueprint = Blueprint('blog', __name__, template_folder=path.join(path.pardir, '/templates', 'blog'), url_prefix='/blog')
 
 
 def sidebar_data():
@@ -19,17 +18,12 @@ def sidebar_data():
     return recent, top_tags
 
 
-@app.route('/')
-def index():
-    return redirect(url_for('blog.home'))
-
-
 @blog_blueprint.route('/')
 @blog_blueprint.route('/<int:page>')
 def home(page=1):
     posts = Post.query.order_by(Post.publish_date.desc()).paginate(page, 10)
     recent, top_tags = sidebar_data()
-    return render_template('home.html', posts=posts, recent=recent, top_tags=top_tags)
+    return render_template('blog/home.html', posts=posts, recent=recent, top_tags=top_tags)
 
 
 @blog_blueprint.route('/post/<string:post_id>', methods=('GET', 'POST'))
@@ -46,7 +40,7 @@ def post(post_id):
     tags = post.tags
     comments = post.comments.order_by(Comment.date.desc()).all()
     recent, top_tags = sidebar_data()
-    return render_template('post.html', post=post, tags=tags, comments=comments, form=form, recent=recent, top_tags=top_tags)
+    return render_template('blog/post.html', post=post, tags=tags, comments=comments, form=form, recent=recent, top_tags=top_tags)
 
 
 @blog_blueprint.route('/tag/<string:tag_name>')
@@ -54,7 +48,7 @@ def tag(tag_name):
     tag = Tag.query.filter_by(name=tag_name).first_or_404()
     posts = tag.posts.order_by(Post.publish_date.desc()).all()
     recent, top_tags = sidebar_data()
-    return render_template('tag.html', tag=tag, posts=posts, recent=recent, top_tags=top_tags)
+    return render_template('blog/tag.html', tag=tag, posts=posts, recent=recent, top_tags=top_tags)
 
 
 @blog_blueprint.route('/user/<string:username>')
@@ -62,4 +56,4 @@ def user(username):
     user = db.session.query(User).filter_by(username=username).first_or_404()
     posts = user.posts.order_by(Post.publish_date.desc()).all()
     recent, top_tags = sidebar_data()
-    return render_template('user.html', user=user, posts=posts, recent=recent, top_tags=top_tags)
+    return render_template('blog/user.html', user=user, posts=posts, recent=recent, top_tags=top_tags)

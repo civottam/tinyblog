@@ -1,16 +1,21 @@
-from flask import Flask, redirect
+from flask import Flask, redirect, url_for
 
-from config import DevConfig
-import forms
-
-app = Flask(__name__)
-app.config.from_object(DevConfig)
-from views import *
-
-views = __import__('views')
+from tinyblog.models import db
+from tinyblog.controllers import blog, main
+from tinyblog.extensions import bcrypt
 
 
-if __name__ == '__main__':
-    # Entry the application
-    app.register_blueprint(blog_blueprint)
-    app.run()
+def create_app(object_name):
+    app = Flask(__name__)
+    app.config.from_object(object_name)
+    db.init_app(app)
+    bcrypt.init_app(app)
+
+    @app.route('/')
+    def index():
+        return redirect(url_for('blog.home'))
+    
+    app.register_blueprint(blog.blog_blueprint)
+    app.register_blueprint(main.main_blueprint)
+    
+    return app

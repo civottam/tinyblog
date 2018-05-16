@@ -1,41 +1,42 @@
-# -*- coding: utf-8 -*-
-
 from flask_sqlalchemy import SQLAlchemy
-
-from main import app
+from tinyblog.extensions import bcrypt 
 
 # INIT the sqlalchemy object                            
 # Will be load the SQLALCHEMY_DATABASE_URL from config.py
 # SQLAlchemy will load configuration defined in DevConfig from APP object
-db = SQLAlchemy(app)
-
-
-class User(db.Model):
-    """Blog users."""
-
-    # Table initialization
-    __tablename__ = 'users'
-    id = db.Column(db.String(45), primary_key=True)
-    username = db.Column(db.String(255))
-    password = db.Column(db.String(255))
-    # Establish contact with Post's ForeignKey: user_id
-    posts = db.relationship('Post', backref='users', lazy='dynamic')
-
-    def __init__(self, id, username, password):
-        self.id = id
-        self.username = username
-        self.password = password
-    
-    def __repr__(self):
-        """Define the string format for instance of User."""
-        return "<Model User `{}`>".format(self.username)
-
+db = SQLAlchemy()
 
 # Create relationship table between Tag and Post
 posts_tags = db.Table('posts_tags', 
                     db.Column('post_id', db.String(45), db.ForeignKey('posts.id')), 
                     db.Column('tag_id', db.String(45), db.ForeignKey('tags.id'))
                 )
+
+
+class User(db.Model):
+    """Blog users."""
+    __tablename__ = 'users'
+    id = db.Column(db.String(45), primary_key=True)
+    username = db.Column(db.String(255))
+    password = db.Column(db.String(255))
+    # User -> Posts (one to many) Establish contact with Post's ForeignKey: user_id
+    posts = db.relationship('Post', backref='users', lazy='dynamic')
+
+    def __init__(self, id, username, password):
+        self.id = id
+        self.username = username
+        self.password = self.set_password(password)
+    
+    def __repr__(self):
+        """Define the string format for instance of User."""
+        return "<Model User `{}`>".format(self.username)
+    
+    def set_password(self, password):
+        return bcrypt.generate_password_hash(password)
+
+    def check_password(self, password):
+        return bcrypt.check_password_hash(self.password, password)
+
 
 class Post(db.Model):
     """Posts of users."""
