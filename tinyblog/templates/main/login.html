@@ -23,6 +23,11 @@
       {% endif %}
       {{ form.password(class_='form-control') }}
     </div>
+    <div class="row">
+      <div class="form-group">
+        <a href="{{ url_for('main.twitter_login') }}">Login via Twitter</a>
+      </div>
+    </div>
     <input class="btn btn-primary" type="submit" value="Login">
   </form>
 </div>
