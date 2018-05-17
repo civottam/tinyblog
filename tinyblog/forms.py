@@ -6,6 +6,11 @@ from wtforms.validators import DataRequired, Length, EqualTo, URL
 from tinyblog.models import User
 
 
+class PostForm(FlaskForm):
+    title = StringField('Title', [DataRequired(), Length(max=255)])
+    text = TextAreaField('Blog Content', [DataRequired()])
+
+
 class LoginForm(FlaskForm):
     username = StringField('Username', [DataRequired(), Length(max=255)])
     password = PasswordField('Password', [DataRequired()])
