@@ -10,12 +10,13 @@ from tinyblog.extensions import bcrypt
 # SQLAlchemy will load configuration defined in DevConfig from APP object
 db = SQLAlchemy()
 
-# Create relationship table between Tag and Post
+# Relationship table between Tag and Post
 posts_tags = db.Table('posts_tags', 
                     db.Column('post_id', db.String(45), db.ForeignKey('posts.id')), 
                     db.Column('tag_id', db.String(45), db.ForeignKey('tags.id'))
                     )
 
+# Relationship table between User and Role
 users_roles = db.Table('users_roles',
                     db.Column('user_id', db.String(45), db.ForeignKey('users.id')),
                     db.Column('role_id', db.String(45), db.ForeignKey('roles.id'))
@@ -37,6 +38,7 @@ class User(db.Model):
         self.id = id
         self.username = username
         self.password = self.set_password(password)
+        # default role for user
         default = Role.query.filter_by(name='default').one()
         self.roles.append(default)
     
@@ -75,8 +77,9 @@ class Role(db.Model):
     name = db.Column(db.String(255), unique=True)
     description = db.Column(db.String(255))
 
-    def __init__(self):
-        self.id = str(uuid4())
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
 
     def __repr__(self):
         return "<Model Role `{}`>".format(self.name)

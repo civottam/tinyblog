@@ -2,6 +2,7 @@ from os import path
 from uuid import uuid4
 from flask import Blueprint, flash, redirect, render_template, url_for, request, session
 from flask_login import login_user, logout_user, login_manager
+from flask_principal import Identity, AnonymousIdentity, identity_changed, current_app
 
 from tinyblog.forms import LoginForm, RegisterForm
 from tinyblog.models import db, User
@@ -21,6 +22,9 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).one()
         login_user(user, remember=form.remember.data)
+        # This function will send 'current_app._get_current_object()' which is current app object and identity object which is currently being logged in
+        # user object as a signal, which presents identity of user object in app object was changed.
+        identity_changed.send(current_app._get_current_object(), identity=Identity(user.id))
         flash("You have been logged in.", category="success")
         return redirect(url_for('blog.home'))
     return render_template('login.html', form=form)
@@ -29,8 +33,9 @@ def login():
 @main_blueprint.route('/logout', methods=['GET', 'POST'])
 def logout():
     logout_user()
+    identity_changed.send(current_app._get_current_object(), identity=AnonymousIdentity())
     flash("You have been logged out.", category="success")
-    return redirect(url_for('blog.home'))
+    return redirect(url_for('main.login'))
 
 
 @main_blueprint.route('/register', methods=['GET', 'POST'])

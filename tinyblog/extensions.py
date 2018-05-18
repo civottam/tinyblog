@@ -2,10 +2,12 @@ from flask import session
 from flask_bcrypt import Bcrypt
 from flask_oauth import OAuth
 from flask_login import LoginManager
+from flask_principal import Principal, Permission, RoleNeed
 
-
+# Flask-Bccrypt initialization
 bcrypt = Bcrypt()
 
+# Flask-OAuth initialization
 oauth = OAuth()
 twitter = oauth.remote_app('twitter',
     base_url='https://api.twitter.com/1/',
@@ -20,7 +22,7 @@ twitter = oauth.remote_app('twitter',
 def get_twitter_token(token=None):
     return session.get('twitter_token')
 
-
+# Flask-login intialization
 login_manager = LoginManager()
 login_manager.login_view = 'main.login'
 login_manager.session_protection = 'strong'
@@ -31,3 +33,9 @@ login_manager.login_message_category = 'info'
 def load_user(user_id):
     from tinyblog.models import User
     return User.query.filter_by(id=user_id).first()
+
+# Flask-Principal initialization
+principals = Principal()
+admin_permission = Permission(RoleNeed('admin'))
+poster_permission = Permission(RoleNeed('poster'))
+default_permission = Permission(RoleNeed('default'))
