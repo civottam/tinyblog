@@ -1,6 +1,7 @@
 from os import path
 from uuid import uuid4
 from flask import Blueprint, flash, redirect, render_template, url_for, request, session
+from flask_login import login_user, logout_user, login_manager
 
 from tinyblog.forms import LoginForm, RegisterForm
 from tinyblog.models import db, User
@@ -18,6 +19,8 @@ def index():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).one()
+        login_user(user, remember=form.remember.data)
         flash("You have been logged in.", category="success")
         return redirect(url_for('blog.home'))
     return render_template('login.html', form=form)
@@ -25,6 +28,7 @@ def login():
 
 @main_blueprint.route('/logout', methods=['GET', 'POST'])
 def logout():
+    logout_user()
     flash("You have been logged out.", category="success")
     return redirect(url_for('blog.home'))
 

@@ -1,5 +1,9 @@
+from uuid import uuid4
 from flask_sqlalchemy import SQLAlchemy
-from tinyblog.extensions import bcrypt 
+from flask_login import AnonymousUserMixin
+
+from tinyblog.extensions import bcrypt
+
 
 # INIT the sqlalchemy object                            
 # Will be load the SQLALCHEMY_DATABASE_URL from config.py
@@ -10,7 +14,12 @@ db = SQLAlchemy()
 posts_tags = db.Table('posts_tags', 
                     db.Column('post_id', db.String(45), db.ForeignKey('posts.id')), 
                     db.Column('tag_id', db.String(45), db.ForeignKey('tags.id'))
-                )
+                    )
+
+users_roles = db.Table('users_roles',
+                    db.Column('user_id', db.String(45), db.ForeignKey('users.id')),
+                    db.Column('role_id', db.String(45), db.ForeignKey('roles.id'))
+                    )
 
 
 class User(db.Model):
@@ -19,13 +28,17 @@ class User(db.Model):
     id = db.Column(db.String(45), primary_key=True)
     username = db.Column(db.String(255))
     password = db.Column(db.String(255))
-    # User -> Posts (one to many) Establish contact with Post's ForeignKey: user_id
+    # User -> Post (one to many) Establish contact with Post's ForeignKey: user_id
     posts = db.relationship('Post', backref='users', lazy='dynamic')
+    # User -> role (many to many) 
+    roles = db.relationship('Role', secondary=users_roles, backref=db.backref('users', lazy='dynamic'))
 
     def __init__(self, id, username, password):
         self.id = id
         self.username = username
         self.password = self.set_password(password)
+        default = Role.query.filter_by(name='default').one()
+        self.roles.append(default)
     
     def __repr__(self):
         """Define the string format for instance of User."""
@@ -36,6 +49,37 @@ class User(db.Model):
 
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password, password)
+
+    def is_authenticated(self):
+        if isinstance(self, AnonymousUserMixin):
+            return False
+        else:
+            return True
+    
+    def is_active():
+        return True
+    
+    def is_anonymous(self):
+        if isinstance(self, AnonymousUserMixin):
+            return True
+        else:
+            return False
+
+    def get_id(self):
+        return self.id
+
+
+class Role(db.Model):
+    __tablename__ = 'roles'
+    id = db.Column(db.String(45), primary_key=True)
+    name = db.Column(db.String(255), unique=True)
+    description = db.Column(db.String(255))
+
+    def __init__(self):
+        self.id = str(uuid4())
+
+    def __repr__(self):
+        return "<Model Role `{}`>".format(self.name)
 
 
 class Post(db.Model):
@@ -52,6 +96,7 @@ class Post(db.Model):
     comments = db.relationship('Comment', backref='posts', lazy='dynamic')
     # many to many, posts <==> tags
     tags = db.relationship('Tag', secondary=posts_tags, backref=db.backref('posts', lazy='dynamic'))
+    user = db.relationship('User', back_populates='posts')
 
     def __init__(self, id, title):
         self.id = id

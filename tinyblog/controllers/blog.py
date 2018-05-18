@@ -1,8 +1,10 @@
-from flask import render_template, Blueprint, redirect, url_for
-from sqlalchemy import func
 from uuid import uuid4
 from os import path
 import datetime
+
+from flask import render_template, Blueprint, redirect, url_for
+from sqlalchemy import func
+from flask_login import login_required, current_user
 
 from tinyblog.models import db, User, Post, Tag, Comment, posts_tags
 from tinyblog.forms import CommentForm, PostForm
@@ -60,12 +62,16 @@ def user(username):
 
 
 @blog_blueprint.route('/new', methods=['GET', 'POST'])
+@login_required
 def new_post():
     form = PostForm()
+    if not current_user:
+        return redirect(url_for('main.login'))
     if form.validate_on_submit():
         new_post = Post(id=str(uuid4()), title=form.title.data)
         new_post.text = form.text.data
         new_post.publish_date = datetime.datetime.now()
+        new_post.user = current_user
         db.session.add(new_post)
         db.session.commit()
         return redirect(url_for('blog.home'))
