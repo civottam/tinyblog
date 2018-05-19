@@ -3,6 +3,8 @@ from flask_bcrypt import Bcrypt
 from flask_oauth import OAuth
 from flask_login import LoginManager
 from flask_principal import Principal, Permission, RoleNeed
+from flask_celery import Celery
+from flask_mail import Mail
 
 # Flask-Bccrypt initialization
 bcrypt = Bcrypt()
@@ -39,3 +41,9 @@ principals = Principal()
 admin_permission = Permission(RoleNeed('admin'))
 poster_permission = Permission(RoleNeed('poster'))
 default_permission = Permission(RoleNeed('default'))
+
+# Flask-Celery-helper initialization
+flask_celery_helper = Celery()
+
+# Flask-Mail initialization
+mail = Mail()

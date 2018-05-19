@@ -12,5 +12,15 @@ class DevConfig(Config):
     """Development config class."""
     # Open the DEBUG
     DEBUG = True
+    # sqlalchemy configuration
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:rootroot@127.0.0.1:3306/tinyblog'
     SQLALCHEMY_TRACK_MODIFICATIONS = True
+    # celery configuration
+    CELERY_RESULT_BACKEND = "amqp://guest:guest@localhost:5672//"
+    CELERY_BROKER_URL = "amqp://guest:guest@localhost:5672//"
+    # flask-mail configuration
+    MAIL_SERVER = 'smtp-mail.outlook.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = 'tinyblog@outlook.com'
+    MAIL_PASSWORD = 'T1nybl0g@'
